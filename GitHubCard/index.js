@@ -46,20 +46,52 @@ const followersArray = [];
 </div>
 */
 const CardCreator = data => {
-  const card = el('div').classList.add('card')
+  const card = el('div')
   const img = el('img')
-  const cardInfo = el('div').classList.add('card-info')
+  const cardInfo = el('div')
   const h3 = el('h3')
-  const userName = el('p').classList.add('username')
+  const userName = el('p')
   const location = el('p')
   const profile = el('p')
   const address = el('a')
   const followers = el('p')
   const following = el('p')
-  const bio = el(p)
+  const bio = el('p')
 
+  card.classList.add('card')
+  cardInfo.classList.add('card-info')
+  userName.classList.add('username')
 
+  img.src = data.avatar_url
+  h3.textContent = data.login
+  userName.textContent = data.login
+  location.textContent = data.location
+  address.href = `github.com/${data.login}`
+  address.textContent = 'github'
+  followers.textContent = data.followers
+  following.textContent = data.following
+  bio.textContent = data.bio
+
+  profile.appendChild(address)
+  ac([h3, userName, location, profile, followers, following, bio], cardInfo)
+  ac([cardInfo, img], card)
+
+  return card
 }
+
+const data = []
+
+axios.get('https://api.github.com/users/embiggenerd')
+  .then(r => {
+    data.push(r.data)
+    const cards = document.querySelector('.cards')
+    data.forEach(d => {
+      cards.appendChild(CardCreator(d))
+    })
+  }).catch(e => {
+    console.log(e)
+  })
+
 
 /* List of LS Instructors Github username's:
   tetondan
