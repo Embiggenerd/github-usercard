@@ -25,13 +25,15 @@ axios.get('https://api.github.com/users/embiggenerd')
           user, and adding that card to the DOM.
 */
 
-const followersArray = [
+const followersArray = [ // This is notthe final list of followers, more are added later programmtically
   'tetondan',
   'dustinmyers',
   'justsml',
   'luishrd',
   'bigknell'
 ];
+
+
 
 
 
@@ -75,7 +77,7 @@ const CardCreator = data => {
   h3.textContent = data.name || data.login
   userName.textContent = data.login
   location.textContent = data.location
-  address.href = `github.com/${data.login}`
+  address.href = `https://github.com/${data.login}`
   address.textContent = 'github'
   followers.textContent = data.followers
   following.textContent = data.following
@@ -91,15 +93,30 @@ const CardCreator = data => {
 const data = []
 const cards = document.querySelector('.cards')
 
-axios.get('https://api.github.com/users/embiggenerd')
+// A good example of my async/await was created:
+axios.get('https://api.github.com/users/embiggenerd') // Get my github data
   .then(r => {
-    data.push(r.data)
-    data.forEach(d => {
-      cards.appendChild(CardCreator(d))
+    data.push(r.data) // When network call returns, push it to data
+    data.forEach(d => { 
+      cards.appendChild(CardCreator(d)) // Loop over data and append cards to dom
     })
-  }).catch(e => {
-    console.log(e)
+    return r.data.followers_url // Pass my followers url to next callback
   })
+  .then(url => {
+    return axios.get(url) // Make a get request on url, pass response to next callback
+  })
+  .then(res => {
+    res.data.forEach(u => {
+      followersArray.push(u.login) // After that network call gets back, push usernames of followers to followersArray
+    })
+  })
+  .then(() => {
+    axios.all(followersArray.map(user => { // create array of get requsts for axios.all to invoke
+      return axios.get(`https://api.github.com/users/${user}`) // pass reponse array to next callback
+    })).then(res => {
+      res.forEach(r => cards.appendChild(CardCreator(r.data))) // Loop over array of responses, and use response data as param ot CardCreator
+    }).catch(e => console.log(e))
+  }).catch(e => console.log(e))
 
 
 /* List of LS Instructors Github username's:
@@ -110,8 +127,4 @@ axios.get('https://api.github.com/users/embiggenerd')
   bigknell
 */
 
-axios.all(followersArray.map(user => {
-  return axios.get(`https://api.github.com/users/${user}`)
-})).then(res => {
-  res.forEach(r => cards.appendChild(CardCreator(r.data)))
-}).catch(e => console.log(e))
+// Step 5
